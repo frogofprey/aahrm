@@ -1,3 +1,4 @@
+```mermaid
 graph LR
     subgraph "ESP32 DevKit V1 (30-Pin)"
         GND[GND]
