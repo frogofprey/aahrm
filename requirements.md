@@ -1,59 +1,67 @@
-# Software Requirements Specification: AetherAegis HRM (AAHRM)
+# AetherAegis HRM (AAHRM) Requirements Document
 
 ## 1. Project Overview
-**AetherAegis HRM (AAHRM)** is a cross-platform (Android/Windows/VR) biometric utility built in Unity. It bridges Bluetooth Low Energy (BLE) heart rate data with a decoupled AI backend to provide narrative, context-aware physiological feedback via Text-to-Speech (TTS).
+AetherAegis is a high-fidelity heart rate monitoring and simulation ecosystem. It bridges the gap between physical BLE hardware and immersive HUDs (Unity/Web) while providing advanced simulation, replay, and "personality-driven" coaching modes.
 
-### 1.1 Objective
-The primary goal is to create a robust, production-grade coding portfolio piece that demonstrates:
-* **Modular Software Design:** Swappable LLM/TTS backends.
-* **Hardware Integration:** Real-time BLE GATT communication.
-* **Data Lifecycle Management:** Aggregation of raw sensor data into actionable AI prompts.
+## 2. Functional Requirements
 
----
+### 2.1 Core Logic & Data (P0)
+| ID | Requirement Description | Priority |
+| :--- | :--- | :--- |
+| **REQ-101** | Live BLE Bridge: Node.js service using `noble-winrt` to connect to GATT/BLE HRM. | P0 |
+| **REQ-102** | Parametric Simulation: Software generation of Sine/Step/Random HR data. | P0 |
+| **REQ-103** | Unity HUD Integration: C# dashboard for real-time metric visualization. SteamVR Overlay functionaity with admin console. | P0 |
+| **REQ-104** | Interpolation Engine: Logic to smooth 1Hz hardware updates for fluid UI. | P0 |
 
-## 2. System Architecture
-The application utilizes a **Service-Oriented Architecture** to ensure high decoupling.
+### 2.2 Advanced Features & Logic (P1)
+| ID | Requirement Description | Priority |
+| :--- | :--- | :--- |
+| **REQ-201** | LLM/TTS Persona Engine: Personality layer (Trainer/Unhinged/TNG) reacting to HR trends. | P1 |
+| **REQ-202** | Replay Source: Module to replay recorded .fit or JSON data for dev/debug. | P2 |
+| **REQ-203** | Scan & Connect: Dynamic BLE device discovery and pairing UI. | P1 |
 
-* **Core Controller:** Manages the workout state machine and timing.
-* **Provider Interfaces:** `IAnalysisProvider` and `IVoiceProvider` define the contract for external services.
-* **Data Sampler:** Periodically captures heart rate values and buffers them for the analyzer.
-* **Persistence Manager:** Handles JSON-based storage for user settings and device UUIDs.
+### 2.3 R&D & Extraction (P2)
+| ID | Requirement Description | Priority |
+| :--- | :--- | :--- |
+| **REQ-301** | Native Android Extractor: Pull Series Data directly from Google Health Connect. | P3 |
+| **REQ-302** | Automated .fit Ingestion: Automated parsing of Garmin/Polar historical files. | P3 |
 
----
+## 3. Backend & User Interface Requirements
 
-## 3. Functional Requirements (FR)
+### 3.1 Backend Providers
+| ID | Requirement Description |
+| :--- | :--- |
+| **REQ-401** | AI Backend: Support for local (edge) or API-based (OpenRouter/OpenAI/Gemini) LLM. |
+| **REQ-402** | Storage: Local JSON-based storage for user profiles, session logs, and .fit caches. |
+| **REQ-403** | Voice Provider: Integration with system TTS or neural voices (OpenAI/Deepgram/Other). |
 
-### 3.1 Sensor Management (BLE)
-* **FR-1.1 Discovery:** Scan for and list devices broadcasting the Heart Rate Service (0x180D).
-* **FR-1.2 Persistence:** Securely save the UUID of a preferred sensor and attempt auto-connection on application launch.
-* **FR-1.3 Data Ingestion:** Subscribe to the Heart Rate Measurement characteristic (0x2A37).
-* **FR-1.4 Status Monitor:** Provide a UI "Thumbnail" on the dashboard showing connection health and battery status.
+### 3.2 User Interface (UI)
+| ID | Requirement Description |
+| :--- | :--- |
+| **REQ-501** | Web Dashboard (Dev): web interface for VibeSim control and websocket bridge monitoring. |
+| **REQ-502** | Unity HUD (Prod): 3D overlay with customizable "Mode" themes (TNG/Grit). |
+| **REQ-503** | Mobile HUD (Future): Native Android View for standalone workout tracking. |
 
-### 3.2 Analysis & Logic (The "Aegis" Core)
-* **FR-2.1 Default Zoning:** Automate Heart Rate Zone calculation (Z1–Z5) using the $220 - \text{Age}$ formula for the MVP.
-* **FR-2.3 Buffer Logic:** * **Capture Interval:** Polling frequency for HR data (Default: 10s; Range: 1s–60s).
-    * **Reporting Interval:** Frequency of AI-generated status updates (Default: 60s; Range: 30s–300s).
-* **FR-2.4 Snapshot Generation:** Compile buffered data (Average HR, Max HR, Time-in-Zone) into a structured JSON payload for the LLM.
+## 4. Non-Functional Requirements (NFRs)
+| ID | Attribute | Requirement |
+| :--- | :--- | :--- |
+| **NFR-601** | Latency | End-to-end latency from BLE event to HUD visualization < 250ms. |
+| **NFR-602** | Reliability | Automatic reconnection for dropped BLE signals without service restart. |
+| **NFR-603** | Scalability | Support for at least 3 simultaneous local WebSocket subscribers. |
+| **NFR-604** | Portability | Core logic must support eventual migration to Android Background Service. |
 
-### 3.3 Backend Providers
-* **FR-3.1 LLM Support:** Implement a modular wrapper for **OpenRouter** (supporting Claude/GPT-4/Llama) and OpenAI.
-* **FR-3.2 Voice Support:** Implement a modular wrapper for **Deepgram Aura** and Google Cloud TTS.
+## 5. Technical Stacks
 
-### 3.4 User Interface
-* **FR-4.1 Dashboard:** Landing page with a sensor status summary and "Start Workout" functionality.
-* **FR-4.2 Configuration Dialog:** Persistent settings for User Age, Sampling/Reporting intervals, and API Provider selection.
+### 5.1 Prototype Stack (Current)
+* **Runtime:** Node.js (Windows)
+* **Language:** TypeScript
+* **BLE Library:** `noble-winrt`
+* **UI:** React/Vite + Tailwind
+* **Comm:** WebSockets (Localhost)
 
----
-
-## 4. Non-Functional Requirements (NFR)
-* **NFR-4.1 Modularity:** All external services must be swappable via the **Strategy Pattern** (C# Interfaces).
-* **NFR-4.2 Threading:** All network I/O and BLE operations must be asynchronous to maintain a consistent 60+ FPS Unity framerate.
-* **NFR-4.3 Reliability:** Implement graceful degradation (e.g., if the LLM is unreachable, the system reverts to a basic text-to-speech zone announcement).
-
----
-
-## 5. Technical Stack
-* **Engine:** Unity 2022.3 LTS
-* **Platform Support:** Android (APK) & Windows (SteamVR Overlay)
-* **Data Handling:** C# System.Text.Json or Newtonsoft.Json
-* **Communication:** Bluetooth LE (GATT) & REST API
+### 5.2 Production Stack (Final)
+* **Runtime:** Android JVM / Unity Mono
+* **Language:** Kotlin / C#
+* **AI Engine:** Integrated LLM API via Unity WebRequests
+* **HUD:** Unity URP (Universal Render Pipeline) SteamVR
+* **Comm:** UDP (Low latency broadcast) / WebSocket
