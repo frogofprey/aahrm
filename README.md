@@ -23,6 +23,12 @@ This project is currently under active development. Current focus:
 ## 🚀 The Vision
 The goal of AAHRM is to provide a "voice-first" workout companion that understands your effort. Instead of just hearing a number, the system analyzes your heart rate trends over time and provides context: *"You've been in Zone 4 for five minutes; your heart rate is stabilizing. Keep this pace for the final interval."*
 
+## prototype work:
+* Google AI Studio prototype (requires a websocket link for HR data): 
+[AetherAegis Vibe Prototype](https://github.com/frogofprey/aahrm_vibe_proto)
+* Cursor 'vibe' coded simulator/replay/live HR data to websocket: 
+[AetherAegis Vibe Sim](https://github.com/frogofprey/vibesim)
+
 ## 🛠️ Technical Highlights
 To demonstrate professional software engineering standards, this project implements:
 
